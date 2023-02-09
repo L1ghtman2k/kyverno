@@ -3,6 +3,7 @@ package dclient
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -77,6 +78,7 @@ func (c serverResources) GetGVRFromKind(kind string) (schema.GroupVersionResourc
 	if kind == "" {
 		return schema.GroupVersionResource{}, nil
 	}
+	log.Println("Got to GetKindFromGVK at time: ", time.Now())
 	gv, k := kubeutils.GetKindFromGVK(kind)
 	_, _, gvr, err := c.FindResource(gv, k)
 	if err != nil {
@@ -146,12 +148,14 @@ func (c serverResources) findResourceFromResourceName(groupVersion, resourceName
 // to be specified as `Pod/status`. If the resource is not found and the Cache is not fresh, the cache is invalidated
 // and a retry is attempted
 func (c serverResources) FindResource(groupVersion string, kind string) (apiResource, parentAPIResource *metav1.APIResource, gvr schema.GroupVersionResource, err error) {
+	log.Println("Got to findResource at time: ", time.Now())
 	r, pr, gvr, err := c.findResource(groupVersion, kind)
 	if err == nil {
 		return r, pr, gvr, nil
 	}
-
+	log.Println("Got to cachedClient.Fresh at time: ", time.Now())
 	if !c.cachedClient.Fresh() {
+		log.Println("Got to c.cachedClient.Invalidate() at time: ", time.Now())
 		c.cachedClient.Invalidate()
 		if r, pr, gvr, err = c.findResource(groupVersion, kind); err == nil {
 			return r, pr, gvr, nil
@@ -167,6 +171,7 @@ func (c serverResources) findResource(groupVersion string, kind string) (apiReso
 	serverPreferredResources, _ := c.cachedClient.ServerPreferredResources()
 	_, serverGroupsAndResources, err := c.cachedClient.ServerGroupsAndResources()
 
+	log.Println("Got to IsGroupDiscoveryFailedError at time: ", time.Now())
 	if err != nil && !strings.Contains(err.Error(), "Got empty response for") {
 		if discovery.IsGroupDiscoveryFailedError(err) {
 			logDiscoveryErrors(err)
@@ -178,6 +183,7 @@ func (c serverResources) findResource(groupVersion string, kind string) (apiReso
 		}
 	}
 
+	log.Println("Got to SplitSubresource at time: ", time.Now())
 	kindWithoutSubresource, subresource := kubeutils.SplitSubresource(kind)
 
 	if subresource != "" {
@@ -190,7 +196,7 @@ func (c serverResources) findResource(groupVersion string, kind string) (apiReso
 		resource, gvr, err := findSubresource(groupVersion, parentResourceName, subresource, kind, serverGroupsAndResources)
 		return resource, parentApiResource, gvr, err
 	}
-
+	log.Println("Got to findResource inside findResource at time: ", time.Now())
 	return findResource(groupVersion, kind, serverPreferredResources, serverGroupsAndResources)
 }
 
@@ -234,6 +240,8 @@ func findResource(groupVersion string, kind string, serverPreferredResources, se
 			break
 		}
 	}
+
+	log.Println("Got to onlySubresourcePresentInMatchingResources at time: ", time.Now())
 
 	if onlySubresourcePresentInMatchingResources {
 		apiResourceWithListGV := matchingServerResources[0]
