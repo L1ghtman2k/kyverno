@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -403,6 +404,9 @@ func main() {
 		enablePolicyException      bool
 		exceptionNamespace         string
 	)
+
+	log.Println("Starting Kyverno at time: ", time.Now())
+
 	flagset := flag.NewFlagSet("kyverno", flag.ExitOnError)
 	flagset.BoolVar(&dumpPayload, "dumpPayload", false, "Set this flag to activate/deactivate debug mode.")
 	flagset.IntVar(&webhookTimeout, "webhookTimeout", webhookcontroller.DefaultWebhookTimeout, "Timeout for webhook configurations.")
@@ -479,6 +483,7 @@ func main() {
 		logger.Error(err, "failed to setup registry client")
 		os.Exit(1)
 	}
+	fmt.Println("Got cosign at time: ", time.Now())
 	// setup cosign
 	setupCosign(logger, imageSignatureRepository)
 	informerBasedResolver, err := resolvers.NewInformerBasedResolver(cacheInformer.Core().V1().ConfigMaps().Lister())
@@ -534,6 +539,7 @@ func main() {
 		kubeKyvernoInformer.Apps().V1().Deployments(),
 		certRenewer,
 	)
+	fmt.Println("Got to non-leader controllers at time: ", time.Now())
 	// create non leader controllers
 	nonLeaderControllers, nonLeaderBootstrap := createNonLeaderControllers(
 		genWorkers,
@@ -549,6 +555,7 @@ func main() {
 		openApiManager,
 		configMapResolver,
 	)
+	fmt.Println("Got to StartInformersAndWaitForCacheSync: ", time.Now())
 	// start informers and wait for cache sync
 	if !internal.StartInformersAndWaitForCacheSync(signalCtx, kyvernoInformer, kubeInformer, kubeKyvernoInformer, cacheInformer) {
 		logger.Error(errors.New("failed to wait for cache sync"), "failed to wait for cache sync")
