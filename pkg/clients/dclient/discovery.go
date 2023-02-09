@@ -168,7 +168,10 @@ func (c serverResources) FindResource(groupVersion string, kind string) (apiReso
 func (c serverResources) findResource(groupVersion string, kind string) (apiResource, parentAPIResource *metav1.APIResource,
 	gvr schema.GroupVersionResource, err error,
 ) {
+
+	log.Println("Got to serverPreferredResources at time: ", time.Now())
 	serverPreferredResources, _ := c.cachedClient.ServerPreferredResources()
+	log.Println("Got to serverGroupsAndResources at time: ", time.Now())
 	_, serverGroupsAndResources, err := c.cachedClient.ServerGroupsAndResources()
 
 	log.Println("Got to IsGroupDiscoveryFailedError at time: ", time.Now())
