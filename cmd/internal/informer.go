@@ -17,6 +17,7 @@ type informer interface {
 
 func StartInformers[T startable](ctx context.Context, informers ...T) {
 	for i := range informers {
+		log.Println("Starting informer: ", i)
 		informers[i].Start(ctx.Done())
 	}
 }
@@ -42,6 +43,7 @@ func CheckCacheSync[T comparable](status map[T]bool) bool {
 }
 
 func StartInformersAndWaitForCacheSync(ctx context.Context, informers ...informer) bool {
+	log.Println("Got to StartInformersAndWaitForCacheSync")
 	StartInformers(ctx, informers...)
 	return WaitForCacheSync(ctx, informers...)
 }
