@@ -64,7 +64,7 @@ func NewClient(
 	kube kubernetes.Interface,
 	resync time.Duration,
 ) (Interface, error) {
-	disco := kube.Discovery()
+	disco := kube.Discovery().WithLegacy()
 	client := client{
 		dyn:  dyn,
 		kube: kube,
