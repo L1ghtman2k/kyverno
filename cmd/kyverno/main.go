@@ -449,6 +449,8 @@ func main() {
 	// show version
 	showWarnings(logger)
 	// create instrumented clients
+
+	log.Println("Got to client constructors at time: ", time.Now())
 	kubeClient := internal.CreateKubernetesClient(logger, kubeclient.WithMetrics(metricsConfig, metrics.KubeClient), kubeclient.WithTracing())
 	leaderElectionClient := internal.CreateKubernetesClient(logger, kubeclient.WithMetrics(metricsConfig, metrics.KubeClient), kubeclient.WithTracing())
 	kyvernoClient := internal.CreateKyvernoClient(logger, kyvernoclient.WithMetrics(metricsConfig, metrics.KyvernoClient), kyvernoclient.WithTracing())
@@ -463,11 +465,13 @@ func main() {
 	// ELSE KYAML IS NOT THREAD SAFE
 	kyamlopenapi.Schema()
 	// check we can run
+	log.Println("Got to sanity check time: ", time.Now())
 	if err := sanityChecks(dClient); err != nil {
 		logger.Error(err, "sanity checks failed")
 		os.Exit(1)
 	}
 	// informer factories
+	log.Println("Got to informer factories at time: ", time.Now())
 	kubeInformer := kubeinformers.NewSharedInformerFactory(kubeClient, resyncPeriod)
 	kubeKyvernoInformer := kubeinformers.NewSharedInformerFactoryWithOptions(kubeClient, resyncPeriod, kubeinformers.WithNamespace(config.KyvernoNamespace()))
 	kyvernoInformer := kyvernoinformer.NewSharedInformerFactory(kyvernoClient, resyncPeriod)
@@ -476,8 +480,10 @@ func main() {
 		logger.Error(err, "failed to create cache informer factory")
 		os.Exit(1)
 	}
+	log.Println("Got to secret listener at time: ", time.Now())
 	secretLister := kubeKyvernoInformer.Core().V1().Secrets().Lister().Secrets(config.KyvernoNamespace())
 	// setup registry client
+	log.Println("Got to registry client at time: ", time.Now())
 	rclient, err := setupRegistryClient(signalCtx, logger, secretLister, imagePullSecrets, allowInsecureRegistry)
 	if err != nil {
 		logger.Error(err, "failed to setup registry client")
