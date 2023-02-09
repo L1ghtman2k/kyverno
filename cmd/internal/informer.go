@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"log"
 	"reflect"
 )
 
@@ -23,8 +24,10 @@ func StartInformers[T startable](ctx context.Context, informers ...T) {
 func WaitForCacheSync(ctx context.Context, informers ...informer) bool {
 	ret := true
 	for i := range informers {
+		log.Printf("informer index: %d\n", i)
 		for _, result := range informers[i].WaitForCacheSync(ctx.Done()) {
 			ret = ret && result
+			log.Printf("ret: %t\n", ret)
 		}
 	}
 	return ret
